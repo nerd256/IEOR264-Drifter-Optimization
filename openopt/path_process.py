@@ -82,12 +82,37 @@ while edge:
         
         p += 1;
     
-   # pathimg.save("frames/%04d.png"%i);
+    pathimg.save("frames/%04d.png"%i);
     i += 1;
     
 
 pathimg.show();
-print connections;
+
+maxlabel = 0;
+for (il,ol) in connections:
+    if il > maxlabel:
+        maxlabel = il
+    if ol > maxlabel:
+        maxlabel = ol
+    
+pixcnts = [0]*(maxlabel+1);
+
+#print connections;
+totals = 0;
+for y in range(0,img.size[1]):
+    for x in range(0,img.size[0]):
+        if pathpx[x,y][0] != 255:
+            #print pathpx[x,y]
+            pixcnts[ pathpx[x,y][0]/5 ] += 1
+            totals += 1
+        
+for i in range(0,maxlabel+1):
+    print "Label %d : %d pixels (%.2f%%)" % (i,pixcnts[i],100*pixcnts[i]/float(totals))
+
+# enumerate routes
+
+
+
 
 #print "reds",reds
 #print "greens",greens
