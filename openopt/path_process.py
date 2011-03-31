@@ -131,36 +131,56 @@ connections = sorted(connections);
 used_labels = range(0,nextlabel);
 # remove redundant paths and empty paths
 changed = True;
-relabel = {};
+relabel={};
 while changed:
     changed = False;
+    labcounts = [0]*nextlabel;
     for i in used_labels:
-        egi = [];
         for (l1,l2) in connections:
-            if l1 == i:
-                egi.append((i,l2,True));
-            elif l2 == i:
-                egi.append((i,l1,False));
+            if l1 == i or l2 == i:
+                labcounts[i] += 1;
                 
-        if len(egi) == 2:
-            print "Label %d has 2 edges: to %d and %d"%(i,egi[0][1],egi[1][1])
-            changed = True;
-            relabel[i] = egi[0][1]; # arbitrary choice
-            if egi[0][2]:
-                connections.remove((i,egi[0][1]));
-            else:
-                connections.remove((egi[0][1],i));
-            
-            if egi[1][2]:
-                connections.remove((i,egi[1][1]));
-            else:
-                connections.remove((egi[1][1],i));
-
-        elif len(egi) == 0:
-            print "remove",i
-            used_labels.remove(i);
-            changed = True;
-
+    print labcounts
+    
+    for i in used_labels:
+        #find a connection from us to a neighbor with two neighbors
+        if ( labcounts[i] == 2 ) :
+            #print "NOM?"
+            #find a connection of us
+            for con in connections:
+                (l1, l2) = con
+                if ( l1 == i ):
+                    ol = l2;
+                elif (l2 == i):
+                    ol = l1;
+                else: continue;
+                break;
+                
+            # does our neighbor have 2 also?
+            print i,ol,labcounts[ol]
+            if ( labcounts[ol] == 2 ):    
+                print "Nom?"
+                # find where that neighbor goes
+                for con2 in connections:
+                    (ll1, ll2) = con2
+                    if ( ll1 == ol ):
+                        ool = ll2;
+                    elif (ll2 == ol):
+                        ool = ll1;
+                    else: continue;
+                    
+                # eat our neighbor OMNOMNOM
+                try:
+                    used_labels.remove(ol);
+                except:pass
+                connections.remove(con);
+                connections.remove(con2);
+                connections.append((i,ool));
+                labcounts[ol] = 0;
+                relabel[ol] = i;
+                changed = True;
+                
+  
 # now relabel the image
 for y in range(0,img.size[1]):
     for x in range(0,img.size[0]):
