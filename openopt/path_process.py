@@ -33,10 +33,10 @@ for y in range(0,img.size[1]):
 gx,gy = greens[0];
 i = 0;
 pix[gx,gy] = (0,255,0);
-used_labels = [0];
 edge = [(gx,gy,0)];
 newedge = [];
 connections = [];
+nextlabel = 1;
 while edge:
     for (x, y, l) in edge:
         for (s, t) in ((x+1, y), (x-1, y), (x, y+1), (x, y-1),(x+1,y+1),(x-1,y+1),(x+1,y-1),(x-1,y-1)):
@@ -53,12 +53,16 @@ while edge:
     while newedge:
         (x,y,l) = newedge.pop();
 
-        if ( l in labels_seen ): # already saw this label, but not a part of it, a new edge is born!
+        if ( l in labels_seen ): 
+            # already saw this label, but not a part of it, a new edge is born: generate two new labels and assign
             old = l;
-            while l in used_labels:
-                l += 1;
-            used_labels.append(l);
-            connections.append((old,l)); # split
+            l1 = nextlabel;
+            l2 = nextlabel + 1;
+            nextlabel += 2;
+            
+            l = l2; # working from second label now
+            connections.append((old,l2));
+            connections.append((old,l1)); # split
                     
         labels_seen.append(l);
         
@@ -75,18 +79,19 @@ while edge:
                         tocheck.append((ox,oy,l));
                         edge.append((ox,oy,l));
                         if ( ol != l and (ol,l) not in connections) :
-                            connections.append((ol,l)); #join
+                            connections.append((l,ol)); #join
                                
         for (x,y,l) in thisedge:
-            pathpx[x,y] = (5*l,5*l,5*l);
+            pathpx[x,y] = colors[l%len(colors)];#(5*l,5*l,5*l);
         
         p += 1;
     
-    pathimg.save("frames/%04d.png"%i);
+    #pathimg.save("frames/%04d.png"%i);
     i += 1;
     
 
-pathimg.show();
+#pathimg.show();
+pathimg.save("result.png");
 
 maxlabel = 0;
 for (il,ol) in connections:
@@ -96,7 +101,7 @@ for (il,ol) in connections:
         maxlabel = ol
     
 pixcnts = [0]*(maxlabel+1);
-
+"""
 #print connections;
 totals = 0;
 for y in range(0,img.size[1]):
@@ -110,7 +115,7 @@ for i in range(0,maxlabel+1):
     print "Label %d : %d pixels (%.2f%%)" % (i,pixcnts[i],100*pixcnts[i]/float(totals))
 
 # enumerate routes
-
+"""
 
 
 
