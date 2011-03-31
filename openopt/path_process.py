@@ -11,8 +11,6 @@ pathimg = Image.new('RGB',img.size,(255,255,255));
 pathpx = pathimg.load()
 pathdraw = ImageDraw.Draw(pathimg)
 
-
-#colors = [(128,0,0),(0,128,0),(0,0,128),(128,128,0),(0,128,128),(128,0,128)];
 colors = [];
 for i in range(0,1000):
     colors.append((random()*256,random()*256,random()*256));
@@ -65,7 +63,6 @@ while edge:
                 
     edge = []
 
-#    print "Iteration %d:"%i
     p = 0;
     labels_seen = [];
     while newedge:
@@ -114,7 +111,6 @@ while edge:
         p += 1;
 
     for (x,y,l) in edge:
-       #pathpx[x,y] = colors[l%len(colors)];
        pathpx[x,y] = (l,l,l);
     
     #pathimg.save("frames/%04d.png"%i);
@@ -122,109 +118,16 @@ while edge:
     
 
 disp_labs();
-#pathimg.save("result.png");
 
-pixcnts = [0]*(nextlabel);
 
-print "Edge list:",len(connections);
-connections = sorted(connections);
-used_labels = range(0,nextlabel);
-# remove redundant paths and empty paths
-changed = True;
-relabel={};
-while changed:
-    changed = False;
-    labcounts = [0]*nextlabel;
-    for i in used_labels:
-        for (l1,l2) in connections:
-            if l1 == i or l2 == i:
-                labcounts[i] += 1;
-                
-    print labcounts
-    
-    for i in used_labels:
-        #find a connection from us to a neighbor with two neighbors
-        if ( labcounts[i] == 2 ) :
-            #print "NOM?"
-            #find a connection of us
-            for con in connections:
-                (l1, l2) = con
-                if ( l1 == i ):
-                    ol = l2;
-                elif (l2 == i):
-                    ol = l1;
-                else: continue;
-                break;
-                
-            # does our neighbor have 2 also?
-            print i,ol,labcounts[ol]
-            if ( labcounts[ol] == 2 ):    
-                print "Nom?"
-                # find where that neighbor goes
-                for con2 in connections:
-                    (ll1, ll2) = con2
-                    if ( ll1 == ol ):
-                        ool = ll2;
-                    elif (ll2 == ol):
-                        ool = ll1;
-                    else: continue;
-                    
-                # eat our neighbor OMNOMNOM
-                try:
-                    used_labels.remove(ol);
-                except:pass
-                connections.remove(con);
-                connections.remove(con2);
-                connections.append((i,ool));
-                labcounts[ol] = 0;
-                relabel[ol] = i;
-                changed = True;
-                
-  
-# now relabel the image
-for y in range(0,img.size[1]):
-    for x in range(0,img.size[0]):
-        if ( pathpx[x,y][0] != 255 and relabel.has_key(pathpx[x,y][0]) ):
-            v = relabel[pathpx[x,y][0]];
-            pathpx[x,y] = (v,v,v);
-
-disp_labs();
-print used_labels
-# map used labels to 0-index and relabel image
-rlmap = {};
-j = 0;
-for i in used_labels:
-    rlmap[i] = j;
-    j += 1;
-
-# now relabel the image
-for y in range(0,img.size[1]):
-    for x in range(0,img.size[0]):
-        if ( pathpx[x,y][0] == 255):continue;
-        v = rlmap[pathpx[x,y][0]];
-        pathpx[x,y] = (v,v,v);
-
-disp_labs();
-
-"""
 totals = 0;
 for y in range(0,img.size[1]):
     for x in range(0,img.size[0]):
         if pathpx[x,y][0] != 255:
-            #print pathpx[x,y]
             pixcnts[ pathpx[x,y][0] ] += 1
             totals += 1
 
-"""
-"""        
+   
 for i in range(0,nextlabel):
     print "Label %d : %d pixels (%.2f%%)" % (i,pixcnts[i],100*pixcnts[i]/float(totals))
-"""
-# enumerate routes
 
-
-
-
-#print "reds",reds
-#print "greens",greens
-# Use blue band for river
