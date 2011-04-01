@@ -14,8 +14,16 @@ pathdraw = ImageDraw.Draw(pathimg)
 colors = [];
 for i in range(0,1000):
     colors.append((random()*256,random()*256,random()*256));
+colors[0] = (255,0,0);
+colors[1] = (0,255,0);
+colors[2] = (0,0,255);
+colors[3] = (255,255,0);
+colors[4] = (0,255,255);
+colors[5] = (255,0,255);
+
 
 def disp_labs():
+    global dispimg
     dispimg = Image.new('RGB',img.size,(255,255,255));
     disppx = dispimg.load();
     for y in range(0,img.size[1]):
@@ -23,6 +31,7 @@ def disp_labs():
             if ( pathpx[x,y][0] != 255 ):
                 disppx[x,y] = colors[pathpx[x,y][0]];
     dispimg.show();
+   
     
 
 greens = [];
@@ -117,10 +126,11 @@ while edge:
     i += 1;
     
 
-disp_labs();
-
+#disp_labs();
+#dispimg.save("output.png");
 
 totals = 0;
+pixcnts = [0]*nextlabel;
 for y in range(0,img.size[1]):
     for x in range(0,img.size[0]):
         if pathpx[x,y][0] != 255:
@@ -128,6 +138,33 @@ for y in range(0,img.size[1]):
             totals += 1
 
    
-for i in range(0,nextlabel):
-    print "Label %d : %d pixels (%.2f%%)" % (i,pixcnts[i],100*pixcnts[i]/float(totals))
+#for i in range(0,nextlabel):
+#    print "Label %d : %d pixels (%.2f%%)" % (i,pixcnts[i],100*pixcnts[i]/float(totals))
 
+# enumerate paths using DFS
+connections = sorted(connections);
+print connections
+visited = [0];
+n = 0;
+def DFS():
+    global visited, n
+    l = visited[-1];
+    # find adjacent nodes
+    adj = [];
+    for (l1, l2) in connections:
+        if ( l1 == l and not l2 in visited):
+            adj.append(l2);
+            
+    if len(adj) == 0:
+        #end of path
+        n += 1;
+        print visited
+        return;
+    
+    for o in adj:
+        visited.append(o);
+        DFS();
+
+DFS();
+
+print n,"paths"
