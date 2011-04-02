@@ -4,7 +4,7 @@ import Image
 from random import random
 import ImageFilter, ImageDraw
 
-img = Image.open("rivers.png");
+img = Image.open("rivers_small.png");
 pix = img.load();
 
 pathimg = Image.new('RGB',img.size,(255,255,255));
@@ -30,7 +30,7 @@ def disp_labs():
         for x in range(0,img.size[0]):
             if ( pathpx[x,y][0] != 255 ):
                 disppx[x,y] = colors[pathpx[x,y][0]];
-    dispimg.show();
+    #dispimg.show();
    
     
 
@@ -42,7 +42,6 @@ for y in range(0,img.size[1]):
         if ( pix[x,y][2] < 255 ):
             if ( pix[x,y][0] == 255 ) :
                 reds.append((x,y));
-                pix[x,y] = (0,0,0);
             elif ( pix[x,y][1] == 255 ) :
                 #print x,y
                 greens.append((x,y));
@@ -54,6 +53,11 @@ def relabel_edge(thelist, old, new):
    for j in range(0,len(thelist)):
         if ( thelist[j][2] == old ):
           thelist[j] = (thelist[j][0],thelist[j][1],new)
+          
+   for j in range(0,len(red_labels)):
+        if ( red_labels[j] == old ): 
+            red_labels[j] = new;
+            break;
 
 gx,gy = greens[0];
 i = 0;
@@ -61,12 +65,16 @@ pix[gx,gy] = (0,255,0);
 edge = [(gx,gy,0)];
 newedge = [];
 connections = [];
+red_labels = [];
 nextlabel = 1;
 while edge:
     for (x, y, l) in edge:
         for (s, t) in ((x+1, y), (x-1, y), (x, y+1), (x, y-1),(x+1,y+1),(x-1,y+1),(x+1,y-1),(x-1,y-1)):
             if s >= 0 and t >= 0 and s < img.size[0] and t < img.size[1] and \
-                pix[s,t][1] != 255 and pix[s,t][0] == 0:
+                pix[s,t][1] != 255 and pix[s,t][2] == 0:
+                if pix[s,t][0] == 255 and not l in red_labels:
+                    red_labels.append(l);
+                    
                 pix[s,t] = (0,255,0);
                 newedge.append((s, t, l))
                 
@@ -89,7 +97,7 @@ while edge:
             l = l2; # working from second label now
             connections.append((old,l2));
             connections.append((old,l1)); # split
-                    
+
         labels_seen.append(l);
         
         edge.append((x,y,l));
@@ -126,8 +134,10 @@ while edge:
     i += 1;
     
 
-#disp_labs();
-#dispimg.save("output.png");
+disp_labs();
+dispimg.save("output.png");
+print "Total labels are: ",nextlabel
+print "Sink labels are: ",red_labels
 
 totals = 0;
 pixcnts = [0]*nextlabel;
@@ -143,11 +153,14 @@ for y in range(0,img.size[1]):
 
 # enumerate paths using DFS
 connections = sorted(connections);
-print connections
+print "Total connections:",len(connections)
+paths = [];
 visited = [0];
+allvisited = [0];
 n = 0;
+totpix = pixcnts[0];
 def DFS():
-    global visited, n
+    global visited, n, allvisited, totpix
     l = visited[-1];
     # find adjacent nodes
     adj = [];
@@ -158,13 +171,35 @@ def DFS():
     if len(adj) == 0:
         #end of path
         n += 1;
-        print visited
+        if ( l in red_labels ):
+            paths.append((visited[:],totpix));
+        #print visited,totpix
         return;
     
     for o in adj:
         visited.append(o);
+        totpix += pixcnts[o];
+        allvisited.append(o);
         DFS();
+        totpix -= pixcnts[o];
+        visited.remove(o);
 
 DFS();
 
-print n,"paths"
+print n,"total paths, ",len(paths),"paths to sink"
+bestpix = 0;
+for (path,pix) in paths:
+    if bestpix < pix:
+        bestpix = pix;
+        bestpath = path;
+        
+print "Best path %d pixels: " %bestpix,bestpath
+
+print "Writing paths.txt"
+fout = open('paths.txt','w');
+for (path,pix) in paths:
+    fout.write("%d:"%pix);
+    fout.write(",".join(str(i) for i in path));
+    fout.write("\n");
+fout.close()
+print "Done."
