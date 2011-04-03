@@ -139,11 +139,11 @@ while edge:
     for (x,y,l) in edge:
        pathpx[x,y] = (l,l,l);
     
-    disp_labs();
-    dispimg.save("frames/%04d.png"%i);
+    #disp_labs();
+    #dispimg.save("frames/%04d.png"%i);
     i += 1;
     
-
+# Count up pixels for each label
 totals = 0;
 pixcnts = [0]*nextlabel;
 for y in range(0,img.size[1]):
@@ -151,6 +151,7 @@ for y in range(0,img.size[1]):
         if pathpx[x,y][0] != 255:
             pixcnts[ pathpx[x,y][0] ] += 1
             totals += 1
+            
 changed = True
 while changed:
     #print connections
@@ -208,6 +209,15 @@ while fidx < nextlabel:
                 red_labels[ridx] = tidx;
     
 nextlabel = tidx;
+
+# recount
+totals = 0;
+pixcnts = [0]*nextlabel;
+for y in range(0,img.size[1]):
+    for x in range(0,img.size[0]):
+        if pathpx[x,y][0] != 255:
+            pixcnts[ pathpx[x,y][0] ] += 1
+            totals += 1
 
 disp_labs();
 dispimg.save("output.png");
@@ -277,3 +287,10 @@ for (path,pix) in paths:
     fout.write("\n");
 fout.close()
 print "Done."
+
+print "Writing labs.txt"
+fout = open("labs.txt","w");
+for i in range(0,nextlabel):
+    fout.write("%d\n"%pixcnts[i]);
+
+fout.close();

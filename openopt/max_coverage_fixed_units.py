@@ -22,6 +22,11 @@ for line in fin:
     pidx += 1;
 fin.close();
 
+fin = open("labs.txt","r");
+labpx = [];
+for line in fin:
+    labpx.append(int(line));
+
 numpaths = len(paths);
 
 imposs = [];
@@ -41,18 +46,21 @@ print "Labels",imposs,"impossible to satisfy and are ignored."
 
 rlmap = {};
 rlidx = 0;
+labpx_pruned = [];
 for lidx in range(0,numlabs):
     if ( lidx not in imposs ):
         rlmap[rlidx] = lidx;
         #print rlidx,"->",lidx
-        rlidx += 1;        
+        labpx_pruned.append(labpx[lidx]);
+        rlidx += 1;
+        
 
 optlabs = numlabs - len(imposs);
 optneeded_paths = 0;
 if ( optlabs > 0 ):
     # F = sum(x_i) i from 0 to numpaths
     f = [0]*numpaths;
-    f.extend([1]*optlabs);
+    f.extend(labpx_pruned);
     intVars = range(0,numpaths + optlabs); # all integer variables
 
     lb = array([0.0]*len(intVars));
@@ -93,7 +101,7 @@ if ( optlabs > 0 ):
             labs_got.append(rlmap[lidx]);
             
 print 'Labels satisfied:',labs_got
-print 'Total Labels satisfied:',optlabels_hit
+print 'Total pixels covered:',optlabels_hit
 
 taken = [];
 if ( optlabs > 0 ):
@@ -102,6 +110,8 @@ if ( optlabs > 0 ):
             taken.append(pidx);
         
 print 'Taken paths:',taken
+print "Total paths used:",len(taken)
+print ""
 print "Writing output"
 fout = open("taken_paths.txt","w");
 for pidx in taken:
