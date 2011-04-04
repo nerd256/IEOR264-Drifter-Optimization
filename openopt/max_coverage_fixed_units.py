@@ -90,7 +90,7 @@ if ( optlabs > 0 ):
 
     p = MILP(f=f, lb=lb, ub=ub, A=A, b=b, intVars=intVars, goal='max')
     #r = p.solve('lpSolve')
-    r = p.solve('cplex')
+    r = p.solve('glpk')
     optlabels_hit = r.ff
 
 # Decode solution
