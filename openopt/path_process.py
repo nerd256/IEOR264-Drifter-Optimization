@@ -36,15 +36,19 @@ def disp_labs():
 
 greens = [];
 reds = [];
+blues = [];
 
 for y in range(0,img.size[1]):
     for x in range(0,img.size[0]):
-        if ( pix[x,y][2] < 255 ):
+        if ( pix[x,y] != (255,255,255) ):
             if ( pix[x,y][0] == 255 ) :
                 reds.append((x,y));
             elif ( pix[x,y][1] == 255 ) :
                 #print x,y
                 greens.append((x,y));
+                pix[x,y] = (0,0,0);
+            elif ( pix[x,y][2] == 255 ) :
+                blues.append((x,y));
                 pix[x,y] = (0,0,0);
 
             #print x,y,pix[x,y]
@@ -218,6 +222,9 @@ for y in range(0,img.size[1]):
         if pathpx[x,y][0] != 255:
             pixcnts[ pathpx[x,y][0] ] += 1
             totals += 1
+            
+            # setup weights
+            
 
 disp_labs();
 dispimg.save("output.png");
