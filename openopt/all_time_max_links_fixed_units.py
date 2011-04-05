@@ -3,14 +3,14 @@
 from FuncDesigner import *
 from openopt import MILP 
 from numpy import array, zeros; 
-import sys;
 import time as time_module;
+
+NUMDRIFTERS = 40;
 
 pidx = 0;
 paths = [];
 
-fin = open("paths.txt","r");
-numlabs = int(fin.readline());
+fin = open("paths.txt","r");numlabs = int(fin.readline());
 
 timeH = 0;
 for line in fin:
@@ -37,8 +37,8 @@ print "Added",len(toappend),"waiting paths."
 
 numpaths = len(paths);
 print "Pre-computing over",timeH,"time",numpaths,"paths."
+
 mustpaths = [];
-covered = [];
 imposs = [];
 # find labels with 0 and 1 paths going through
 for time in range(0,timeH):
@@ -52,71 +52,74 @@ for time in range(0,timeH):
                 lastpidx = pidx;
                 
         if ( cnt == 0 ):
-            covered.append((lidx,time));
             imposs.append((lidx,time));
-        elif ( cnt == 1 ):
-            if ( lastpidx not in mustpaths ):
-                mustpaths.append(lastpidx);
-                for link_no in range(0,len(paths[lastpidx])):
-                    if (paths[lastpidx][link_no],link_no) not in covered:
-                        covered.append((paths[lastpidx][link_no],link_no))
 
-print "Paths ",mustpaths," must be taken."
 print len(imposs),"labels impossible to satisfy."
-print "Total",len(covered),"/",(numlabs * timeH),"labels ignored."
-#print covered," labels can be ignored."
+print "Total",len(imposs),"/",(numlabs * timeH),"labels ignored."
 
-rpmap = {};
-rpidx = 0;
-for pidx in range(0,numpaths):
-    if ( pidx not in mustpaths ):
-        rpmap[rpidx] = pidx;
-        #print rpidx,"->",pidx
-        rpidx += 1;
-        
 rlmap = {};
 rlidx = 0;
 for time in range(0,timeH):
     for lidx in range(0,numlabs):
-        if ( (lidx,time) not in covered ):
+        if ( (lidx,time) not in imposs ):
             rlmap[rlidx] = (lidx,time);
             #print rlidx,"->",lidx
             rlidx += 1;
 
-optpaths = numpaths - len(mustpaths);
-optlabs = numlabs*timeH - len(covered);
+optlabs = numlabs*timeH - len(imposs);
 optneeded_paths = 0;
-if ( optpaths > 0 and optlabs > 0):
+if ( optlabs > 0 ):
     # F = sum(x_i) i from 0 to numpaths
-    f = [1]*optpaths; 
-    intVars = range(0,optpaths); # all integer variables
+    f = [0]*numpaths;
+    f.extend([1]*optlabs);
+    intVars = range(0,numpaths + optlabs); # all integer variables
 
-    lb = array([0.0]*optpaths);
-    ub = array([1.0]*optpaths); # assume binary variables ( wouldn't go down same path twice )
-    A = zeros((optlabs, optpaths))
+    lb = array([0.0]*len(intVars));
+    ub = array([1.0]*len(intVars)); # assume binary variables ( wouldn't go down same path twice / can't make a node double count)
+    
+    # Constraints:
+    # Ax_paths >= x_labs --> -Ax_paths + x_labs <= 0
+    # --> [-A I] [x_paths <= 0
+    #            x_labs]
+    
+    # Max number of drifters
+    # --> [1 1 1 1 1 1...] *x_paths = MAX
+    
+    A = zeros((optlabs + 1, numpaths + optlabs))
 
-    for pidx in range(0,optpaths):
+    for pidx in range(0,numpaths):
         for lidx in range(0,optlabs):
-            if ( rlmap[lidx][1] < len(paths[rpmap[pidx]]) and paths[rpmap[pidx]][rlmap[lidx][1]] == rlmap[lidx][0] ):
+            if ( rlmap[lidx][1] < len(paths[pidx]) and paths[pidx][rlmap[lidx][1]] == rlmap[lidx][0] ):
                 A[lidx,pidx] = -1; # everything negated
+        
+        A[optlabs,pidx] = 1;
 
-    b = [-1]*optlabs;
+    for lidx in range(0,optlabs):
+        A[lidx,lidx+numpaths] = 1;   
 
+    b = [0]*optlabs + [NUMDRIFTERS];   
 
-    p = MILP(f=f, lb=lb, ub=ub, A=A, b=b, intVars=intVars, goal='min')
+    p = MILP(f=f, lb=lb, ub=ub, A=A, b=b, intVars=intVars, goal='max')
     #r = p.solve('lpSolve')
     curtime = time_module.time();
     r = p.solve('cplex')
     print "Solver done. Took %.5f real time."%(time_module.time()-curtime)
-    optneeded_paths = r.ff
+    optlabels_hit = r.ff
 
 # Decode solution
-print 'Units needed:', len(mustpaths)+optneeded_paths
-taken = mustpaths;
+labs_got = [];
 if ( optlabs > 0 ):
-    for pidx in range(0,optpaths):
+    for lidx in range(0,optlabs):
+        if ( r.xf[lidx+numpaths] == 1 ):
+            labs_got.append(rlmap[lidx]);
+            
+print 'Total Labels satisfied:',optlabels_hit
+
+taken = [];
+if ( optlabs > 0 ):
+    for pidx in range(0,numpaths):
         if ( r.xf[pidx] == 1 ):
-            taken.append(rpmap[pidx]);
+            taken.append(pidx);
         
 print 'Taken paths:',taken
 print "Writing output"
