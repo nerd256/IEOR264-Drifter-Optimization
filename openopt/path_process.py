@@ -156,6 +156,8 @@ for y in range(0,img.size[1]):
             pixcnts[ pathpx[x,y][0] ] += 1
             totals += 1
             
+print totals," total pixels."
+
 changed = True
 while changed:
     #print connections

@@ -44,9 +44,9 @@ for lidx in range(0,numlabs):
                 if l not in covered:
                     covered.append(l)
 
-print "Paths ",mustpaths," must be taken."
-print "Labels",imposs,"impossible to satisfy."
-print covered," labels can be ignored."
+print "Paths ",mustpaths,"(%d/%d) must be taken."%(len(mustpaths),numpaths)
+print "Labels",imposs,"(%d/%d) impossible to satisfy."%(len(imposs),numlabs)
+print covered," (%d) labels can be ignored."%(len(covered))
 
 rpmap = {};
 rpidx = 0;

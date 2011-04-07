@@ -42,7 +42,8 @@ for lidx in range(0,numlabs):
     if ( cnt == 0 ):
         imposs.append(lidx);
 
-print "Labels",imposs,"impossible to satisfy and are ignored."
+print "Labels",imposs," (%d/%d) impossible to satisfy and are ignored."%(len(imposs),numlabs)
+print "Optimizing over %d paths"%numpaths
 
 rlmap = {};
 rlidx = 0;
@@ -90,7 +91,7 @@ if ( optlabs > 0 ):
 
     p = MILP(f=f, lb=lb, ub=ub, A=A, b=b, intVars=intVars, goal='max')
     #r = p.solve('lpSolve')
-    r = p.solve('glpk')
+    r = p.solve('cplex')
     optlabels_hit = r.ff
 
 # Decode solution
