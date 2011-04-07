@@ -29,41 +29,60 @@
 \begin{frame}{Outline}
 \begin{enumerate}
   \item Problem setup
- \begin{enumerate}
+ \begin{itemize}
   \item Link Labelling
   \item Path enumeration
   \item Path/Region costs
- \end{enumerate}
+ \end{itemize}
 
   \item \{0,1\} Linear Programs
- \begin{enumerate}
+  \begin{itemize}
+  \item General Formulateion
   \item All links minimum units
-  \item Max links fixed units
-  \item All links/All time minumum units
-  \item Max links/All time
- \end{enumerate}
+  \item Maximum coverage fixed units
+  \end{itemize}
 
   \item Mixed Integer Quadratic Programs
-  \begin{enumerate}
-  \item Increasing marginal utility
-  \item Decreasing marginal utility
-  \end{enumerate}
+
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{Problem Setup: Link Labelling}
+\begin{frame}
 \begin{algorithmic}
  \STATE $edge\_list \gets \{(source,0)\}$
  \STATE $visited \gets \emptyset$
- \WHILE{$\left| edge\_list \right| > 0$}
+  \WHILE{$\left| edge\_list \right| > 0$}
    \STATE $(pixel,label) \gets$ pop($edge\_list$)
    \STATE push($visited,pixel$)
    \STATE $adjacent\_edges \gets $ adjacent\_pixels($pixel$)\textbackslash $visited$
    \IF{}
    \ENDIF
  \ENDWHILE
+
+\end{frame}
+
+
+\begin{frame}{\{0,1\} Linear Programs: Static Formulation}
+\begin{align*}
+\min_{x,y}\;& g^Tx + h^Ty \\
+\mbox{s.t.}\;& Ax \geq y \\
+&x_i \in \{0,1\}\;\forall i\in\{1\dots n\}\\
+&y_i \in \{0,1\}\;\forall i\in\{1\dots m\}\\
 \end{algorithmic}
 
+\end{align*}
+\begin{itemize}
+\item $\{x_i\}$ : indicates whether path $i$ of $n$ total paths is taken.
+\item $\{y_j\}$ : indicates whether link $j$ of $m$ total links is visited.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\{0,1\} Linear Programs: All links minimum units}
+\emph{``Visit every link using the least number of drifters''}
+\begin{align}
+h &= 0\\
+g &= \left[ 1,1, \dots ,1\right]\\
+\end{align}
 \end{frame}
 
 
