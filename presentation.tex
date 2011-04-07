@@ -1,4 +1,6 @@
 \documentclass{beamer}
+\usepackage{algorithmic}
+
 \usetheme{default}
 
 \setbeamercolor{umbcboxes}{bg=violet!12,fg=black}
@@ -49,10 +51,19 @@
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{Pr
-\begin{theorem}
-asdf
-\end{theorem}
+\begin{frame}{Problem Setup: Link Labelling}
+\begin{algorithmic}
+ \STATE $edge\_list \gets \{(source,0)\}$
+ \STATE $visited \gets \emptyset$
+ \WHILE{$\left| edge\_list \right| > 0$}
+   \STATE $(pixel,label) \gets$ pop($edge\_list$)
+   \STATE push($visited,pixel$)
+   \STATE $adjacent\_edges \gets $ adjacent\_pixels($pixel$)\textbackslash $visited$
+   \IF{}
+   \ENDIF
+ \ENDWHILE
+\end{algorithmic}
+
 \end{frame}
 
 
