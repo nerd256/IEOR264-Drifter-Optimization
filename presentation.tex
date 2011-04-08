@@ -32,8 +32,21 @@
 %%%%%%%%%%%%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 \begin{frame}{Introduction to the Floating Sensor Network}
- 
+\begin{columns}
+\column{0.5\linewidth}
+\begin{itemize}
+\item Motorized lagrangian (non-anchored) sensors to map currents in rivers and estuaries.
+\item Fleet of 40 to deployed in Summer 2011, running experiments in multi-vehicle coordination.
+\item Fleet must respond within minutes to changing river conditions or user objectives.
+\item IPs provide powerful tool to obtain \emph{optimal} strategies for the fleet to maximize its utility.
+\end{itemize}
 
+\column{0.5\linewidth}
+\begin{figure}
+\includegraphics[height=0.5\textheight]{figures/drifter.png}\\
+\includegraphics[width=1\textwidth,height=0.3\textheight,clip,trim=0 20 0 20,keepaspectratio=true]{figures/drifter_in_water.png}
+\end{figure}
+\end{columns}
 \end{frame}
 
 
@@ -47,6 +60,38 @@
 
 %%%%%%%%%%%%%%%%%%%%% LINK LABELLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Setup}
+\subsection{Software}
+\begin{frame}[fragile]{Problem Setup: Software}
+\begin{columns}
+\column{0.5\linewidth}
+\small
+OpenOpt: Python package to construct problems for variety of solvers (we use cplex and glpk)
+{\footnotesize
+\begin{verbatim} # Instantiate min(f * x) s.t. Ax >= b
+# x_i are integer, where i in intVars
+p = MILP(f=f, lb=lb, ub=ub, A=A, b=b,
+    intVars=intVars, goal='max')
+
+# Start the solver : 'cplex' or 'glpk'
+r = p.solve('cplex') \end{verbatim}
+}
+\begin{itemize}
+\item Integrates with our python-based drifter architecture.
+\item Python file \& image libraries immediately available to set-up problem.
+\end{itemize}
+
+\column{0.5\linewidth}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{figures/python.png}\\
+$\downarrow$\\
+\includegraphics[width=0.8\textwidth]{figures/openopt.png}\\
+$\downarrow$\\
+\includegraphics[width=0.4\textwidth]{figures/cplex.png}
+\includegraphics[width=0.4\textwidth]{figures/gnu-head-sm.jpg}
+\end{figure}
+\end{columns}
+\end{frame}
+
 \subsection{Link Labelling}
 \begin{frame}{Problem Setup: Link Labelling}
 Breadth-First-Search (BFS) style flood-fill:
@@ -313,7 +358,19 @@ Example: $w_j$ are the number of pixels in each region.
 %%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 \begin{frame}{Conclusion}
- 
+This work has demonstrated:
+ \begin{itemize}
+  \small
+  \item Path selection problem formulated as \{0,1\} LP can be solved in seconds and is suitable for real-time recomputation.
+  \item Path enumeration drives feasibility of the problem.
+ \end{itemize}
+Immediate Future Extensions:
+ \begin{itemize}
+  \small
+  \item More than 1 unit needed to observe an area (rendezvous).
+  \item Meaningful weighting of links, such as proximity to contaminant sources.
+  \item Recomputation of problem with some units partially along a path.
+ \end{itemize}
 \end{frame}
 
 
