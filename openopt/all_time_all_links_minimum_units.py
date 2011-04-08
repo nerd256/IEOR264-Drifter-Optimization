@@ -61,7 +61,7 @@ for time in range(0,timeH):
                     if (paths[lastpidx][link_no],link_no) not in covered:
                         covered.append((paths[lastpidx][link_no],link_no))
 
-print "Paths ",mustpaths," must be taken."
+print "Paths ",mustpaths," (%d) must be taken."%(len(mustpaths))
 print len(imposs),"labels impossible to satisfy."
 print "Total",len(covered),"/",(numlabs * timeH),"labels ignored."
 #print covered," labels can be ignored."
@@ -85,6 +85,7 @@ for time in range(0,timeH):
 
 optpaths = numpaths - len(mustpaths);
 optlabs = numlabs*timeH - len(covered);
+print "Optpaths: %d, Optlabs %d"%(optpaths,optlabs)
 optneeded_paths = 0;
 if ( optpaths > 0 and optlabs > 0):
     # F = sum(x_i) i from 0 to numpaths
@@ -106,7 +107,7 @@ if ( optpaths > 0 and optlabs > 0):
     p = MILP(f=f, lb=lb, ub=ub, A=A, b=b, intVars=intVars, goal='min')
     #r = p.solve('lpSolve')
     curtime = time_module.time();
-    r = p.solve('cplex')
+    r = p.solve('glpk')
     print "Solver done. Took %.5f real time."%(time_module.time()-curtime)
     optneeded_paths = r.ff
 

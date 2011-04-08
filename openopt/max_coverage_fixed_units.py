@@ -26,6 +26,7 @@ fin = open("labs.txt","r");
 labpx = [];
 for line in fin:
     labpx.append(int(line));
+fin.close();
 
 numpaths = len(paths);
 
@@ -48,15 +49,18 @@ print "Optimizing over %d paths"%numpaths
 rlmap = {};
 rlidx = 0;
 labpx_pruned = [];
+totpx = 0;
 for lidx in range(0,numlabs):
     if ( lidx not in imposs ):
         rlmap[rlidx] = lidx;
         #print rlidx,"->",lidx
         labpx_pruned.append(labpx[lidx]);
+        totpx += labpx[lidx];
         rlidx += 1;
         
 
 optlabs = numlabs - len(imposs);
+print "optlabs: %d totpx: %d"%(optlabs,totpx)
 optneeded_paths = 0;
 if ( optlabs > 0 ):
     # F = sum(x_i) i from 0 to numpaths

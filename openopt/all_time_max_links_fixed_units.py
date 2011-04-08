@@ -68,6 +68,7 @@ for time in range(0,timeH):
 
 optlabs = numlabs*timeH - len(imposs);
 optneeded_paths = 0;
+print "optlabs: %d numpaths: %d"%(optlabs,numpaths)
 if ( optlabs > 0 ):
     # F = sum(x_i) i from 0 to numpaths
     f = [0]*numpaths;

@@ -1,8 +1,10 @@
-\documentclass{beamer}
+\documentclass[xcolor=pdflatex,dvipsnames,table]{beamer}
 \usepackage{algorithmic}
 \usepackage{multimedia}
 
 \usetheme{default}
+
+
 
 \setbeamercolor{umbcboxes}{bg=violet!12,fg=black}
 
@@ -22,33 +24,30 @@
 \date{April 15, 2011}
 
 \begin{document}
+
 \begin{frame}[plain]
   \titlepage
 \end{frame}
 
+%%%%%%%%%%%%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\begin{frame}{Introduction to the Floating Sensor Network}
+ 
 
-\begin{frame}{Outline}
-\begin{enumerate}
-  \item Problem setup
- \begin{itemize}
-  \item Link Labelling
-  \item Path enumeration
-  \item Path/Region costs
- \end{itemize}
-
-  \item \{0,1\} Linear Programs
-  \begin{itemize}
-  \item General Formulation
-  \item All links minimum units
-  \item Maximum coverage fixed units
-  \end{itemize}
-
-  \item Mixed Integer Quadratic Programs
-
-\end{enumerate}
 \end{frame}
 
 
+%% We want first outline to come after introduction slide
+\AtBeginSection[]
+{
+   \begin{frame}
+       \tableofcontents[currentsection]
+   \end{frame}
+}
+
+%%%%%%%%%%%%%%%%%%%%% LINK LABELLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Problem Setup}
+\subsection{Link Labelling}
 \begin{frame}{Problem Setup: Link Labelling}
 Breadth-First-Search (BFS) style flood-fill:
 \begin{itemize}
@@ -61,22 +60,64 @@ Breadth-First-Search (BFS) style flood-fill:
 \end{itemize}
    \item Algorithm ends when there are no more water pixels to process.
 \end{itemize}
-
 \end{frame}
 
 \begin{frame}{Problem Setup: Link Labelling}
+\begin{columns}[c]
+\column{0.5\linewidth}
+San Joaquin/Sacramento River Delta Target Domain
+\begin{itemize}
+ \item Approx. 2km$\times$8km 
+ \item 105 labelled regions after pruning 0-area regions
+\end{itemize}
 
-\begin{figure}
-\includegraphics[width=0.55\linewidth]{figures/domain.png}\\
-\movie[width=0.2\linewidth, height=0.5\textheight, rate=2, autostart, repeat, poster]{}{figures/anim_edge.mpg}
-\movie[width=0.2\linewidth, height=0.5\textheight, rate=2, autostart, repeat, poster]{}{figures/anim2.mpg}
-\includegraphics[height=0.5\textheight]{figures/labelled.png}
-\end{figure}
+Weaknesses:
+\begin{itemize}
+ \item ``King's move'' dynamics.
+ \item Bias towards coordinate system.
+ \item Several long strips.
+ \item Joining of labels relies on timing.
+\end{itemize}
 
+
+\column{0.5\linewidth}
+  \begin{figure}
+  \includegraphics[width=1\linewidth]{figures/domain.png}\\
+  \movie[width=0.5\linewidth, height=0.5\textheight, rate=2, autostart, autoplay, repeat, poster]{}{figures/anim.flv}
+  \hfill
+  \includegraphics[height=0.5\textheight]{figures/labelled.png}
+  \end{figure}
+\end{columns}
 \end{frame}
 
 
-\begin{frame}{\{0,1\} Linear Programs: Static Formulation}
+%%%%%%%%%%%%%%%%%%%%% PATH ENUMERATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Path Enumeration}
+\begin{frame}{Problem Setup: Path Enumeration}
+\begin{columns}
+ \small
+ \column{0.5\linewidth}
+Depth-First-Search (DFS) through connection list:
+\begin{itemize}
+ \item Exhaustively enumerates all possible paths to predetermined ``sink'' labels.
+ \item Connections are directed based on order they were encountered during labelling-- a path cannot backtrack.
+ \item If a dead-end is reached, DFS attempts to ``punch-through'' a connection directed against it (that was not already visited).
+\end{itemize}
+
+ \column{0.5\linewidth}
+\begin{tabular}{c|l}
+ \includegraphics[height=0.7\textheight]{figures/labelled.png} &
+ \small {1547 paths found}
+\end{tabular}
+
+\end{columns}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%% STATIC FORMULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{\{0,1\} Static Linear Programs}
+\subsection{Formulation}
+\begin{frame}{\{0,1\} Static Linear Programs: Formulation}
 \begin{align*}
 \max_{x,y}\;& -g^Tx + h^Ty \\
 \mbox{s.t.}\;& \left[ \begin{array}{c}
@@ -88,7 +129,7 @@ Breadth-First-Search (BFS) style flood-fill:
            0\;\mbox{otherwise}
           \end{cases}\\
 &x_i \in \{0,1\}\;\forall i\in\{1\dots n\}\\
-&y_i \in \{0,1\}\;\forall i\in\{1\dots m\}
+&y_j \in \{0,1\}\;\forall j\in\{1\dots m\}
 \end{align*}
 
 \begin{itemize}
@@ -102,7 +143,8 @@ Breadth-First-Search (BFS) style flood-fill:
 
 
 %%%%%%%%%%%%%%%%%%%%%% ALL LINKS MINIMUM UNITS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{\{0,1\} Linear Programs: All links minimum units}
+\subsection{All links minimum units}
+\begin{frame}{\{0,1\} Static Linear Programs: All links minimum units}
 \emph{``Visit every link using the least number of drifters''}
 \begin{align*}
 g &= \left[ 1,1, \dots ,1\right]\\
@@ -115,8 +157,9 @@ D &= \infty \;\mbox{(remove row from ILP)}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{\{0,1\} Linear Programs: All links minimum units}
+\begin{frame}{\{0,1\} Static Linear Programs: All links minimum units}
 \begin{figure}
+\rowcolors{1}{RoyalBlue!20}{RoyalBlue!5}
   \begin{tabular}{|l|c|}
   \hline 
   Paths in ILP/Total & 1544/1547 \\
@@ -135,7 +178,8 @@ D &= \infty \;\mbox{(remove row from ILP)}
 
 
 %%%%%%%%%%%%%%%%%%%%%% MAX COVERAGE FIXED UNITS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{\{0,1\} Linear Programs: Max coverage fixed units}
+\subsection{Max coverage fixed units}
+\begin{frame}{\{0,1\} Static Linear Programs: Max coverage fixed units}
 \emph{``Visit the greatest total weighted area with a fixed number of units.''}
 \begin{align*}
 g &= 0\\
@@ -149,16 +193,18 @@ D &= 5\\
 \end{itemize}
 \end{frame}
 
-\begin{frame}{\{0,1\} Linear Programs: All links minimum units}
+\begin{frame}{\{0,1\} Static Linear Programs: Max coverage fixed units}
 Example: $w_j$ are the number of pixels in each region.
 \begin{figure}
+\rowcolors{1}{RoyalBlue!20}{RoyalBlue!5}
   \begin{tabular}{|l|c|}
   \hline 
   Paths & 1547 \\
   Labels in ILP/Total & 82/105 \\
   CPU Time (cplex) & 440mS\\
   CPU Time (glpk) & 210mS \\
-  Pixels covered/Total & 31169/36514 (85\%)\\
+  Allotted Units & 5\\
+  Pixels covered/Total & 31169/32033 (97\%)\\
   \hline
   \end{tabular}
 \end{figure}
@@ -167,6 +213,109 @@ Example: $w_j$ are the number of pixels in each region.
      {\includegraphics[width=0.5\textwidth]{figures/max_coverage_fixed_units_paths.png}}
   \end{figure}
 \end{frame}
+
+%%%%%%%%%%%%%%%%%%%%% DYNAMIC FORMULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{\{0,1\} Dynamic Linear Programs}
+\subsection{Formulation}
+\begin{frame}{\{0,1\} Dynamic Linear Programs: Formulation}
+\begin{align*}
+\max_{x,y}\;& -g^T \tilde{x} + h^T \tilde{y} \\
+\mbox{s.t.}\;& \left[ \begin{array}{c}
+                       \tilde{A}\\
+                       -1, \dots, -1
+                      \end{array}\right] \tilde{x} \geq \left[ \begin{array}{c} \tilde{y}\\-D \end{array}\right] \\
+&a_{i,\mbox{\tiny map}(j,t)} = \begin{cases}
+           1\;\mbox{if path $i$ passes link $j$ at time $t$}\\
+           0\;\mbox{otherwise}
+          \end{cases}\\
+&\tilde{x}_i \in \{0,1\}\;\forall i\in\{1\dots \tilde{n}\}\\
+&\tilde{y}_{\mbox{\tiny map}(j,t)} \in \{0,1\}\;\forall j\in\{1\dots m\},t\in\{1\dots T\}
+\end{align*}
+
+\begin{enumerate}
+\small
+\item Set the time-horizon, $T$, to the maximum path length.
+\item Enumerate all paths which can delay at the source node and still arrive at a sink node by $T$. 
+\item $\tilde{x}$ now contains original $x$ plus all ``delayed'' paths.
+\item $\tilde{y}$ indicates which links are visited and \emph{when}.
+\item Preprocessing step : Remove all zero-rows of A.
+\end{enumerate}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%% ALL TIME ALL PATHS MINIMUM UNITS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{All time all links minimum units}
+\begin{frame}{\{0,1\} Dynamic Linear Programs: All time all links minimum units}
+\begin{columns}
+
+\column{0.5\linewidth}
+  \emph{``Within the time it takes to traverse the entire domain, maintain observation of as many regions as feasibly possible, using the minimum number of units. Units may only delay at the drop-off or pick-up points.''}
+  \begin{figure}
+  \rowcolors{1}{RoyalBlue!20}{RoyalBlue!5}
+    \begin{tabular}{|l|c|}
+    \hline 
+    Paths in ILP/Total & 17328/17487 \\
+    Labels in ILP/Total & 1308/4935 \\
+    CPU Time (problem setup) & 50s \\
+    CPU Time (cplex) & 5s \\
+    CPU Time (glpk) & 128s \\
+    Time Horizon & 47 steps\\
+    Units Needed & 311 \\
+    \hline
+    \end{tabular}
+  \end{figure}
+
+
+\column{0.5\linewidth}
+  \begin{figure}
+    \centering
+    \hfill
+    \movie[width=0.5\linewidth, height=0.7\textheight, rate=2, autostart, autoplay, repeat, poster]{}{figures/all_time_all_links_min_units.flv}
+  \end{figure}
+
+\end{columns}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%% ALL TIME MAX COVERAGE FIXED UNITS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{All time all links minimum units}
+\begin{frame}{\{0,1\} Dynamic Linear Programs: All time max coverage fixed units}
+\begin{columns}
+
+\column{0.5\linewidth}
+  \emph{``Over the time it takes to traverse the entire domain, maximize the total area observed given a fixed number of units. Units may only delay at the drop-off or pick-up points.''}
+  \begin{figure}
+  \rowcolors{1}{RoyalBlue!20}{RoyalBlue!5}
+    \begin{tabular}{|l|c|}
+    \hline 
+    Paths in ILP & 17487 \\
+    Labels in ILP/Total & 2028/4935 \\
+    CPU Time (problem setup) & 51s \\
+    CPU Time (cplex) & 8s \\
+    CPU Time (glpk) & 6s \\
+    Time Horizon & 47 steps\\
+    Units Allotted & 40\\
+    Pixels Covered/Total & 71k/99k (72\%)\\
+    \hline
+    \end{tabular}
+  \end{figure}
+
+
+\column{0.5\linewidth}
+  \begin{figure}
+    \centering
+    \hfill
+    \movie[width=0.5\linewidth, height=0.7\textheight, rate=2, autostart, autoplay, repeat, poster]{}{figures/all_time_max_coverage_fixed_units.flv}
+  \end{figure}
+\end{columns}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+\begin{frame}{Conclusion}
+ 
+\end{frame}
+
 
 
 \end{document}

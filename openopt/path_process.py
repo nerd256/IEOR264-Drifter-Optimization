@@ -78,7 +78,7 @@ while edge:
         for (s, t) in ((x+1, y), (x-1, y), (x, y+1), (x, y-1),(x+1,y+1),(x-1,y+1),(x+1,y-1),(x-1,y-1)):
             if s >= 0 and t >= 0 and s < img.size[0] and t < img.size[1] and \
                 pix[s,t][2] == 0:
-                if ( pix[s,t][1] != 255 ):  
+                if ( pix[s,t][1] == 0 ):  
                     if pix[s,t][0] == 255 and not l in red_labels:
                         red_labels.append(l);
                         
@@ -91,7 +91,7 @@ while edge:
                             #connections.append((ol,l));
                             #connections.append((l,ol));
     edge = []
-
+    
     p = 0;
     labels_seen = [];
     while newedge:
@@ -140,11 +140,14 @@ while edge:
 
         p += 1;
 
+    #img.save("frames/edge%04d.png"%i);
     for (x,y,l) in edge:
        pathpx[x,y] = (l,l,l);
+       pix[x,y] = (0,127,0);
     
     #disp_labs();
-    #dispimg.save("frames/%04d.png"%i);
+    #dispimg.save("frames/disp%04d.png"%i);
+    
     i += 1;
     
 # Count up pixels for each label
