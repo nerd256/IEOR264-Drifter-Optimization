@@ -4,7 +4,14 @@ import Image
 from random import random
 import ImageFilter, ImageDraw
 
-img = Image.open("rivers.png");
+
+
+if ( len(sys.argv) > 1 ):
+    imgfname = sys.argv[1];
+else:
+    imgfname = "rivers.png"
+    
+img = Image.open(imgfname);
 pix = img.load();
 
 pathimg = Image.new('RGB',img.size,(255,255,255));
@@ -232,8 +239,8 @@ for y in range(0,img.size[1]):
             
 
 disp_labs();
-dispimg.save("output.png");
-pathimg.save("labelled.png");
+dispimg.save("output_"+imgfname);
+pathimg.save("labelled_"+imgfname);
 print "Total labels are: ",nextlabel
 print "Sink labels are: ",red_labels
 

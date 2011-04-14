@@ -4,7 +4,7 @@ import Image
 from random import random
 import ImageFilter, ImageDraw
 
-img = Image.open("labelled.png");
+img = Image.open("labelled_rivers.png");
 pix = img.load();
 
 outimg = Image.new('RGB',img.size,(255,255,255));
@@ -20,7 +20,7 @@ colors[3] = (255,255,0);
 colors[4] = (0,255,255);
 colors[5] = (255,0,255);
 
-fin = open("taken_paths.txt","r");
+fin = open("paths.txt","r");
 pidx = 0;
 for line in fin:
     try:
