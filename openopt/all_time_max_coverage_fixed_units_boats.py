@@ -6,8 +6,7 @@ from numpy import array, zeros;
 import time as time_module;
 
 NUMDRIFTERS = 40;
-TIME = 50;
-BOATCOST = 10;
+TIME = 200;
 BOATTIME = 10;
 
 pidx = 0;
@@ -30,18 +29,29 @@ for line in fin:
     labpx.append(int(line));
 fin.close();
 
-toappend = [];
-for path in paths:
-    slack = TIME - len(path);
-    ptemp = path[:]
-    for wait in range(1,slack+1):
-        ptemp.insert(0,0);
-        toappend.append(ptemp[:]);
-       
-paths.extend(toappend);
-print "Added",len(toappend),"waiting paths."
+boattrips = [];
+boatoptstart = [];
+boatends = [[] for i in range(TIME/BOATTIME/2)];
+numpaths = 0;
+for bidx in range(0,TIME/BOATTIME/2):
+    btime = bidx * BOATTIME * 2;
+    #print "Boat time:",btime
+    boatl = [];
+    boatoptstart.append(numpaths);
+    for pidx in range(0,len(paths)):
+        endt = btime + len(paths[pidx]);
+        if ( endt < TIME ):
+            boatl.append(pidx);
+            
+            idxend = int(0.9999 + (endt + BOATTIME) / BOATTIME / 2);
+            
+            if ( idxend < len(boatends) ):
+                boatends[ idxend ].append(numpaths);
+               
+            numpaths += 1;
+            
+    boattrips.append(boatl);
 
-numpaths = len(paths);
 print "Pre-computing over",TIME,"time",numpaths,"paths."
 
 mustpaths = [];
@@ -52,25 +62,30 @@ for time in range(0,TIME):
         cnt = 0;
         lastpidx = 0;
         
-        for pidx in range(0,numpaths):
-            if time < len(paths[pidx]) and paths[pidx][time] == lidx:
-                cnt += 1;
-                lastpidx = pidx;
+        for bidx in range(0,len(boattrips)):
+            btime = bidx * BOATTIME * 2;
+            if btime > time: break;
+            for pidx in boattrips[bidx]:
+                if time-btime < len(paths[pidx]) and paths[pidx][time-btime] == lidx:
+                    cnt += 1;
+                    break;
                 
+            if cnt > 0: break;
+            
         if ( cnt == 0 ):
             imposs.append((lidx,time));
 
 print len(imposs),"labels impossible to satisfy."
 print "Total",len(imposs),"/",(numlabs * TIME),"labels ignored."
 
-rlmap = {};
+rlmap = [];
 rlidx = 0;
 labpx_pruned = []
 labpx_tot = 0;
 for time in range(0,TIME):
     for lidx in range(0,numlabs):
         if ( (lidx,time) not in imposs ):
-            rlmap[rlidx] = (lidx,time);
+            rlmap.append((lidx,time));
             labpx_pruned.append(labpx[lidx]);
             labpx_tot += labpx[lidx];
             #print rlidx,"->",lidx
@@ -83,52 +98,54 @@ if ( optlabs > 0 ):
     # F = sum(x_i) i from 0 to numpaths
     f = [0]*numpaths;
     f.extend(labpx_pruned);
-    f.extend([BOATCOST]*TIME);
-    intVars = range(0,numpaths + optlabs + TIME); # all integer variables
+    intVars = range(0,numpaths + optlabs); # all integer variables
 
     lb = array([0.0]*len(intVars));
     ub = array([1.0]*len(intVars)); # assume binary variables ( wouldn't go down same path twice / can't make a node double count)
     
     # Constraints:
     # Ax_paths >= x_labs --> -Ax_paths + x_labs <= 0
-    # --> [-A I 0] [x_paths <= 0
-    #            x_labs
-    #            x_boat]
+    # --> [-A I] [x_paths <= 0
+    #            x_labs]
     
-    # Max number of drifters
-    # --> [1 1 1 1 1 1...] *x_paths = MAX
-    
-    # Boat travel time
-    # --> [1 1 1 1 1 0 0 ...] * x_boat <= 1
-    # AND [0 1 1 1 1 1 0....] * x_boat <= 1
-    # AND [0 0 1 1 1 1 1... ] etc...
+    # Max number of drifters released at a given time
+    # paths starting at boattrip_i <= paths which ended between previous boat trip
+    # 
     
     
-    A = zeros((optlabs + 1 + (TIME-BOATTIME+1), numpaths + optlabs + TIME))
+    A = zeros((optlabs + (TIME/BOATTIME/2), numpaths + optlabs))
     print "Making constraints: Label satisfaction"
-    for pidx in range(0,numpaths):
-        for lidx in range(0,optlabs):
-            if ( rlmap[lidx][1] < len(paths[pidx]) and paths[pidx][rlmap[lidx][1]] == rlmap[lidx][0] ):
-                A[lidx,pidx] = -1; # everything negated
-        
-        A[optlabs,pidx] = 1;
+    pathno = 0;
+    for bidx in range(0,len(boattrips)):
+        btime = bidx * BOATTIME * 2;
+        for ppidx in range(0,len(boattrips[bidx])):
+            for lidx in range(0,optlabs):
+                rtime = rlmap[lidx][1] - btime
+                if (  rtime >= 0 and rtime < len(paths[boattrips[bidx][ppidx]]) and paths[boattrips[bidx][ppidx]][rtime] == rlmap[lidx][0] ):
+                    A[lidx,boatoptstart[bidx] + ppidx] = -1; # everything negated
+            
+    for lidx in range(0,optlabs):
+        A[lidx,lidx+numpaths] = 1;   
         
     b = [0]*optlabs;
 
     print "Making constraints: Number of drifters"
     # number of units allowed
-    for lidx in range(0,optlabs):
-        A[lidx,lidx+numpaths] = 1;   
-          
-    b = b + [NUMDRIFTERS];   
-
-    print "Making constraints: Boat trip length"
-    # boat use constraints
-    for ridx in range(0,TIME-BOATTIME+1):
-        for cidx in range(ridx,ridx+BOATTIME):
-            A[optlabs + 1 + ridx,numpaths+optlabs+cidx] = 1;
+    # first trip is free
+    b = b + [NUMDRIFTERS];
+    for pidx in range(0,len(boattrips[0])):
+        A[optlabs,pidx] = 1;
             
-    b = b + [1]*(TIME-BOATTIME+1);
+    # [mask of paths starting at bidx] * x_paths <= [mask of paths ending for bidx] * x_paths
+    for bidx in range(1, TIME/BOATTIME/2):
+        for pidx in range(0,len(boattrips[bidx])):
+            A[optlabs+ bidx,boatoptstart[bidx] + pidx] = 1;
+    
+        
+        for pidx in boatends[bidx]:
+            A[optlabs+ bidx,pidx] = -1;
+          
+    b = b + [0]*(TIME/BOATTIME/2-1);
 
     p = MILP(f=f, lb=lb, ub=ub, A=A, b=b, intVars=intVars, goal='max')
     #r = p.solve('lpSolve')
@@ -144,24 +161,27 @@ if ( optlabs > 0 ):
         if ( r.xf[lidx+numpaths] == 1 ):
             labs_got.append(rlmap[lidx]);
             
-taken = [];
-if ( optlabs > 0 ):
-    for pidx in range(0,numpaths):
-        if ( r.xf[pidx] == 1 ):
-            taken.append(pidx);
 
-boat_taken = [];
+paths_taken = [];
+boat_carrying = [0]*(TIME/BOATTIME/2);
 if ( optlabs > 0 ):
-    for bidx in range(0,TIME):
-        if ( r.xf[bidx + numpaths + optlabs] == 1 ):
-            boat_taken.append(bidx);
+    for bidx in range(0,len(boattrips)):
+        print "Boat",bidx,
+        for ppidx in range(0,len(boattrips[bidx])):
+            if ( r.xf[ boatoptstart[bidx] + ppidx ] == 1):
+                paths_taken.append((bidx,paths[boattrips[bidx][ppidx]]));
+                boat_carrying[bidx] += 1;
+        print " deployed ",boat_carrying[bidx]
     
-print 'Taken paths:',taken
-print "Boat trip taken at t=",boat_taken
+   
+#print 'Taken paths:',paths_taken;
 print "Writing output"
-fout = open("taken_paths.txt","w");
-for pidx in taken:
-    fout.write(",".join(str(i) for i in paths[pidx]));
+fout = open("boat_paths.txt","w");
+fout.write("%d\n"%TIME);
+fout.write("%d\n"%BOATTIME);
+for (bidx,path) in paths_taken:
+    fout.write("%d;"%bidx);
+    fout.write(",".join(str(i) for i in path));
     fout.write("\n");
 fout.close();
 print "Done"
