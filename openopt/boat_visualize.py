@@ -13,7 +13,7 @@ img = Image.open("labelled_rivers.png");
 pix = img.load();
 
 (W, H) = img.size;
-outimg = Image.new('RGB',(W+50,H),(255,255,255));
+outimg = Image.new('RGB',(W+75,H),(255,255,255));
 outpix = outimg.load();
 outdraw = ImageDraw.Draw(outimg)
 
@@ -63,12 +63,12 @@ for t in range(TIME):
                 outpix[x,y] = (0,0,0);
 
     # draw boat location
-    outdraw.rectangle((W,0)+(W+50,H),fill=(255,255,255));
+    outdraw.rectangle((W,0)+(W+75,H),fill=(255,255,255));
     outdraw.line((W,0)+(W,H), fill=(0,0,0));
     for yi in range(0,BOATTIME+1):
         y = yi * H/BOATTIME;
         
-        outdraw.line((W,y)+(W+50,y),fill=(0,0,0));
+        outdraw.line((W,y)+(W+75,y),fill=(0,0,0));
 
     
     boatpos = t % (BOATTIME*2);
@@ -90,3 +90,6 @@ for t in range(TIME):
     
     print t
     outimg.save("vizout/boat%04d.png"%t);
+    
+for tp in range(t,t+10):
+    outimg.save("vizout/boat%04d.png"%tp);

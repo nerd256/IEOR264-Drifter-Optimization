@@ -2,6 +2,23 @@
 \usepackage{algorithmic}
 \usepackage{multimedia}
 
+\usepackage[absolute,overlay]{textpos} 
+
+
+\newcommand\putpic[5]{% 
+        \begin{textblock}{#3}(#1,#2) 
+  \includegraphics[width=#3\TPHorizModule, 
+  height=#4\TPVertModule]{#5} 
+     \end{textblock} 
+} 
+
+\newcommand\putmov[5]{% 
+        \begin{textblock}{#3}(#1,#2) 
+  \movie[width=#3\TPHorizModule, 
+  height=#4\TPVertModule]{#5} 
+     \end{textblock} 
+} 
+
 \usetheme{default}
 
 
@@ -322,7 +339,7 @@ Example: $w_j$ are the number of pixels in each region.
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%% ALL TIME MAX COVERAGE FIXED UNITS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{All time all links minimum units}
+\subsection{All time max coverage fixed units}
 \begin{frame}{\{0,1\} Dynamic Linear Programs: All time max coverage fixed units}
 \begin{columns}
 
@@ -354,6 +371,104 @@ Example: $w_j$ are the number of pixels in each region.
 \end{columns}
 \end{frame}
 
+%%%%%%%%%%%%%%%%%%%%% FULL-SCALE OPERATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Full scale operation example}
+\begin{frame}{Full scale operation example: Motivation}
+\begin{columns}
+\column{0.5\linewidth}
+\begin{itemize}
+ \small
+ \item Units cannot travel upstream, only choose which branch of the river to flow down. 
+ \item Units can stop themselves by running into the shore, but will not be able to continue without rescue. 
+ \item Boats periodically \emph{extract} units which have reached the downstream edge of the domain and re-\emph{insert} them back at the upstream edge.
+ \item Boats have finite speed and thus can only re-insert units a fixed number of times throughout the experiment.
+\end{itemize}
+
+
+\column{0.5\linewidth}
+ \begin{figure}
+     {\includegraphics[height=.8\textheight]{figures/full_scale.png}}
+  \end{figure}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Full scale operation example: Formulation}
+\small
+\begin{itemize}
+ \item Objective function same as ``All time max coverage fixed units.''
+ \item Time divided into discrete \emph{deployment windows} representing twice the transit time of a boat. 
+ \item The number of paths which can start at the beginning of a window is the amount of paths terminating at least one transit time previously.
+ \item Constraint on total number of drifters replaced with:
+\begin{align*}
+  \left[\begin{array}{ccccccccc}
+   1&\dots&1&0&\dots&0&0&\dots&0\\
+   0&\dots&0&1&\dots&1&0&\dots&0\\
+   &&&&\vdots&&&&
+  \end{array}\right] \tilde{x} \leq R \tilde{x} + \left[\begin{array}{c}D\\0\\\vdots\\0\end{array}\right]\\
+ R_{i\mbox{\tiny map}(j,d)} = \begin{cases}
+				1\;\mbox{if path $j$ in window $d$ ends before window $i$}\\
+				0\;\mbox{otherwise}\\
+				\end{cases}
+\end{align*}
+
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Full scale operation example: Results}
+\begin{columns}
+\column{0.4\linewidth}
+  Parameters:
+  \rowcolors{1}{RoyalBlue!20}{RoyalBlue!5}
+    \begin{tabular}{|l|c|}
+    \hline 
+    Time Horizon & 200 steps\\
+    Units Allotted & 40\\
+    Boat transit time & 10 steps (10 trips)\\
+    \hline
+    \end{tabular}
+\vspace{.2cm}\\
+
+ Results:
+  \rowcolors{1}{RoyalBlue!20}{RoyalBlue!5}
+   \begin{tabular}{|l|c|}
+    \hline 
+    Paths in ILP & 13548 \\
+    Labels in ILP/Total & 4699/21000 \\
+    CPU Time (problem setup) & 80s \\
+    CPU Time (cplex) & 8s \\
+    Units Allotted & 40\\
+    Pixels Covered/Total & 890k/948k (94\%)\\
+    \hline
+    \end{tabular}
+\vspace{.2cm}\\
+
+ {\small Deployment Schedule:
+  \rowcolors{1}{RoyalBlue!20}{RoyalBlue!5}
+  \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|}
+   \hline
+   Time:&0&20&40&60&80\\
+   \# deployed:&40&20&32&29&33\\
+   \hline
+   Time:&100&120&140&160&180\\
+   \# deployed:&32&36&36&37&5\\
+   \hline
+  \end{tabular}}
+
+\column{0.6\linewidth}
+
+\end{columns}
+{
+
+\TPGrid[1cm,1cm]{50}{50}
+\textblockorigin{0pt}{0pt}
+\begin{textblock}{15}(42,0)
+\movie[width=1\linewidth, height=1\textheight, rate=2, autostart, autoplay, repeat, poster]{}{figures/boat.flv}
+\end{textblock} 
+}
+
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
@@ -363,11 +478,11 @@ This work has demonstrated:
   \small
   \item Path selection problem formulated as \{0,1\} LP can be solved in seconds and is suitable for real-time recomputation.
   \item Path enumeration drives feasibility of the problem.
+  \item Integer Programming frameworks are capable enough to guide and supplant human decisions for real-world deployments.
  \end{itemize}
 Immediate Future Extensions:
  \begin{itemize}
   \small
-  \item More than 1 unit needed to observe an area (rendezvous).
   \item Meaningful weighting of links, such as proximity to contaminant sources.
   \item Recomputation of problem with some units partially along a path.
  \end{itemize}
