@@ -86,7 +86,7 @@ if ( optpaths > 0 and optlabs > 0):
 
     p = MILP(f=f, lb=lb, ub=ub, A=A, b=b, intVars=intVars, goal='min')
     #r = p.solve('lpSolve')
-    r = p.solve('cplex')
+    r = p.solve('glpk')
     optneeded_paths = r.ff
 
 # Decode solution
